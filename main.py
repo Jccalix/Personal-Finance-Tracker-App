@@ -6,6 +6,20 @@ import os
 
 st.set_page_config(page_title="Personal Finance Tracker", page_icon="💰", layout="wide")
 
+categorys_file = "categories.json"
+
+if "categories" not in st.session_state:
+    st.session_state.categories = {"Uncategorized": []}
+
+if os.path.exists("categories.file"):
+    with open("categories.file", "r") as f:
+        st.session_state.categories = json.load(f)
+
+
+def save_categories():
+    with open("categories.file", "w") as f:
+        json.dump(st.session_state.categories, f)
+
 
 def load_transactions(file):
     try:
@@ -33,6 +47,7 @@ def main():
 
         tab1, tab2 = st.tabs(["Expenses (Debits)", "Payments (Credits)"])
         with tab1:
+            
             st.write(debits_df)
 
         with tab2:
