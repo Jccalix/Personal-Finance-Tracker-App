@@ -1,3 +1,4 @@
+from matplotlib.pylab import add
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -47,6 +48,15 @@ def main():
 
         tab1, tab2 = st.tabs(["Expenses (Debits)", "Payments (Credits)"])
         with tab1:
+            new_category = st.text_input("New Category Name")
+            add_button = st.button("Add Category")
+            
+            if add_button and new_category:
+                if new_category not in st.session_state.categories:
+                    st.session_state.categories[new_category] = []
+                    save_categories()
+                    st.success(f"Added a new category {new_category}")
+                    st.rerun()
             
             st.write(debits_df)
 
