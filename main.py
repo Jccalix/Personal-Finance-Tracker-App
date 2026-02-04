@@ -7,19 +7,32 @@ import os
 
 st.set_page_config(page_title="Personal Finance Tracker", page_icon="💰", layout="wide")
 
-categorys_file = "categories.json"
+category_file = "categories.json"
 
 if "categories" not in st.session_state:
     st.session_state.categories = {"Uncategorized": []}
 
-if os.path.exists("categories.file"):
-    with open("categories.file", "r") as f:
+if os.path.exists(category_file):
+    with open(category_file, "r") as f:
         st.session_state.categories = json.load(f)
 
-
 def save_categories():
-    with open("categories.file", "w") as f:
+    with open(category_file, "w") as f:
         json.dump(st.session_state.categories, f)
+
+def categorize_transactions(df):
+    df["Category"] = "Uncategorized"
+    
+    for category, keywords in st.session_state.categories.items():
+        if category == "Uncategorized" or not keywords:
+            continue
+        
+        lowered_keywords = [keyword.lower().strip() for keyword in keywords] 
+        
+        for idx, row in df.iterrows():
+            details = row["Details"].lower().strip()
+            if details in lowered_keywords:
+                df.at[idx, "Category"] = category
 
 
 def load_transactions(file):
@@ -28,7 +41,8 @@ def load_transactions(file):
         df.columns = [col.strip() for col in df.columns]
         df["Amount"] = df["Amount"].str.replace(",", "").astype(float)
         df["Date"] = pd.to_datetime(df["Date"], format="%d %b %Y")
-        return df
+        
+        return categorize_transactions(df)
     except Exception as e:
         st.error(f"Error loading file: {str(e)}")
         return None
@@ -55,7 +69,6 @@ def main():
                 if new_category not in st.session_state.categories:
                     st.session_state.categories[new_category] = []
                     save_categories()
-                    st.success(f"Added a new category {new_category}")
                     st.rerun()
             
             st.write(debits_df)
